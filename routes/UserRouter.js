@@ -1,5 +1,6 @@
 import express from 'express';
 import UserService from '../services/UserService.js';
+import { publishUserEvent } from '../messages/userMessage.js';
 
 const router = express.Router();
 
@@ -7,6 +8,12 @@ router.post('/users/signup', async (req, res) => {
   try {
     const { userType, firstName, lastName, email, password, city, street, postalCode, role, token } = req.body;
     const result = await UserService.signUp(userType, firstName, lastName, email, password, city, street, postalCode, role, token);
+    await publishUserEvent({
+      userType,
+      firstName,
+      lastName,
+      email
+    }, 'created');
     res.status(201).json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
