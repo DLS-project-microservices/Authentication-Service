@@ -22,8 +22,8 @@ router.post('/users/signup', async (req, res) => {
 
 router.post('/users/signin', async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const result = await UserService.signIn(email, password);
+    const { email, password , frontendUserType} = req.body;
+    const result = await UserService.signIn(email, password, frontendUserType);
     res.status(200).json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
