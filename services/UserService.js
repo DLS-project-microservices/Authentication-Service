@@ -27,12 +27,19 @@ const UserService = {
     }
   },
 
-  async signIn(email, password) {
+  async signIn(email, password, frontendUserType) {
     try {
       const user = await User.findOne({ email });
       if (!user) {
         throw new Error('Authentication failed');
       }
+
+      if (frontendUserType.toLowerCase() === 'admin') {
+        if (user.userType.toLowerCase() !== 'admin') {
+          throw new Error('User does not have access');
+        }
+      }
+      
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
         throw new Error('Authentication failed');
