@@ -5,10 +5,10 @@ import User from '../models/UserModel.js';
 const UserService = {
   async signUp(firstName, lastName, email, password, city, street, postalCode, token) {
     let userType = 'customer';
-    
+
     try {
       if (token) {
-        jwt.verify(token, 'secret', (err, decoded) => {
+        jwt.verify(token, process.env.AUTH_SECRET, (err, decoded) => {
           if (err) {
             throw new Error('Invalid token');
           }
@@ -46,7 +46,7 @@ const UserService = {
         lastName: user.lastName,
         email: user.email,
         role: user.role
-      }, 'secret', { expiresIn: '1h' });
+      }, process.env.AUTH_SECRET, { expiresIn: '1h' });
       return { token, firstName: user.firstName, lastName: user.lastName, userType: user.userType, role: user.role, email: user.email };
     } catch (err) {
       throw new Error(err.message);
