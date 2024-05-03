@@ -5,11 +5,14 @@ import { publishUserEvent } from '../messages/userMessage.js';
 const router = express.Router();
 
 router.post('/users/signup', async (req, res) => {
+  const token = req.cookies._auth;
+  
   try {
-    const { userType, firstName, lastName, email, password, city, street, postalCode, role, token } = req.body;
-    const result = await UserService.signUp(userType, firstName, lastName, email, password, city, street, postalCode, role, token);
+    const {firstName, lastName, email, password, city, street, postalCode} = req.body;
+    const result = await UserService.signUp(firstName, lastName, email, password, city, street, postalCode,token);
+    console.log(result);
     await publishUserEvent({
-      userType,
+      userType: result.userType,
       firstName,
       lastName,
       email

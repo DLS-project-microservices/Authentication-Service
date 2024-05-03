@@ -8,8 +8,7 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   city: { type: String },
   street: { type: String },
-  postalCode: { type: String },
-  role: { type: String }
+  postalCode: { type: String }
 });
 
 export default mongoose.model('User', userSchema);

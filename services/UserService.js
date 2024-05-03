@@ -3,41 +3,36 @@ import jwt from 'jsonwebtoken';
 import User from '../models/UserModel.js';
 
 const UserService = {
-  async signUp(userType, firstName, lastName, email, password, city, street, postalCode, role, token) {
+  async signUp(firstName, lastName, email, password, city, street, postalCode, token) {
+    let userType = 'customer';
+
     try {
-      if (userType === 'admin' && token) {
-        jwt.verify(token, 'your_secret_key', (err, decoded) => {
+      if (token) {
+        jwt.verify(token, process.env.AUTH_SECRET, (err, decoded) => {
           if (err) {
             throw new Error('Invalid token');
           }
-          if (!(decoded.userType === 'admin' && decoded.role === 'manager')) {
-            throw new Error('Insufficient privileges to create admin user');
+          if (decoded.userType === 'admin') {
+            userType = 'admin';
           }
         });
-      } else if (userType === 'admin') {
-        throw new Error('Token is required for admin user creation');
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
-      const user = new User({ userType, firstName, lastName, email, password: hashedPassword, city, street, postalCode, role });
+      const user = new User({ userType, firstName, lastName, email, password: hashedPassword, city, street, postalCode});
       await user.save();
-      return { message: 'User created successfully' };
+      return { message: 'User created successfully', userType };
     } catch (err) {
+      console.log(err);
       throw new Error(err.message);
     }
   },
 
-  async signIn(email, password, frontendUserType) {
+  async signIn(email, password) {
     try {
       const user = await User.findOne({ email });
       if (!user) {
         throw new Error('Authentication failed');
-      }
-
-      if (frontendUserType.toLowerCase() === 'admin') {
-        if (user.userType.toLowerCase() !== 'admin') {
-          throw new Error('User does not have access');
-        }
       }
       
       const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -51,7 +46,7 @@ const UserService = {
         lastName: user.lastName,
         email: user.email,
         role: user.role
-      }, 'secret', { expiresIn: '1h' });
+      }, process.env.AUTH_SECRET, { expiresIn: '1h' });
       return { token, firstName: user.firstName, lastName: user.lastName, userType: user.userType, role: user.role, email: user.email };
     } catch (err) {
       throw new Error(err.message);
